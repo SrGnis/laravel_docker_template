@@ -1,0 +1,12 @@
+{
+    "terminal.integrated.profiles.linux": {
+      "BashWithStartup": {
+        "path": "bash",
+        "args": [
+          "--init-file",
+          "./.terminal_startup.sh"
+        ]
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "BashWithStartup"
+}

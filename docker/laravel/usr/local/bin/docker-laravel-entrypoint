@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -e
+cd /var/www/laravel
+
+if [[ -z "$APP_ENV" ]]; then
+    export APP_ENV=local
+    echo -e "\e[33mENV undefined: APP_ENV,\e[0m use default $APP_ENV"
+fi
+
+if [[ -z "$DB_CONNECTION" ]]; then
+    export DB_CONNECTION=sqlite
+    echo -e "\e[33mENV undefined: DB_CONNECTION,\e[0m use default $DB_CONNECTION"
+fi
+
+if [[ "$APP_ENV" = "local" ]]; then
+    usermod -u $DUID www-data
+fi
+
+id www-data
+
+if [[ -z "$APP_KEY" ]]; then
+    msg="ENV undefined: APP_KEY"
+    if [[ "$APP_ENV" = "local" ]]; then
+        APP_KEY=$(php artisan key:generate --show)
+        export APP_KEY
+        echo -e "\e[33m${msg},\e[0m generated $APP_KEY"
+    else
+        echo -e "\e[31m${msg}\e[0m"
+        exit 1
+    fi
+fi
+
+if [[ "$APP_ENV" = "local" ]]; then
+    composer install --no-interaction
+    chown -R www-data:www-data ./vendor ./composer.lock
+    npm install
+    chown -R www-data:www-data ./node_modules ./package-lock.json
+    cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
+    nohup npm run dev > /dev/null 2>&1 &
+else
+    echo "Caching configuration..."
+    php artisan config:cache
+    php artisan route:cache
+fi
+
+if [[ "$DB_CONNECTION" = "sqlite" ]]; then
+    touch database/database.sqlite
+fi
+
+php artisan migrate --force
+
+exec apache2-foreground
+
+

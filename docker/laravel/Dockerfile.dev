@@ -1,0 +1,16 @@
+# syntax = edrevo/dockerfile-plus
+
+INCLUDE+ ./docker/laravel/Dockerfile
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    git \
+    vim \
+    && apt-get clean \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini \
+    && pecl install xdebug \
+    && pecl clear-cache \
+    && docker-php-ext-enable xdebug
