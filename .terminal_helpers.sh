@@ -32,7 +32,7 @@ cr() {
         docker compose exec -it $SERVICE_NAME sudo -u www-data bash
       else
         docker compose exec -it $SERVICE_NAME bash
-      if
+      fi
     fi
   else
     # Show error message if container does not exist
