@@ -22,9 +22,17 @@ cr() {
   if [ -n "$CONTAINER_ID" ]; then
     # Run command in container
     if [ -n "$COMMAND" ]; then
-      docker compose exec -it $SERVICE_NAME $COMMAND
+      if [ "$SERVICE_NAME" = "app" ]; then
+        docker compose exec -it $SERVICE_NAME sudo -u www-data $COMMAND
+      else
+        docker compose exec -it $SERVICE_NAME $COMMAND
+      fi
     else
-      docker compose exec -it $SERVICE_NAME bash
+      if [ "$SERVICE_NAME" = "app" ]; then
+        docker compose exec -it $SERVICE_NAME sudo -u www-data bash
+      else
+        docker compose exec -it $SERVICE_NAME bash
+      if
     fi
   else
     # Show error message if container does not exist
