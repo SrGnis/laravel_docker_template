@@ -73,7 +73,7 @@ Done, now you can run the containers in development mode:
 
 ```bash
 source .terminal_startup.sh
-cddev up -d
+dcdev up -d
 ```
 
 Or in production mode:
