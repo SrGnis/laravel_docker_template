@@ -17,19 +17,6 @@ if [[ "$APP_ENV" = "local" ]]; then
     usermod -u $DUID www-data
 fi
 
-id www-data
-
-if [[ -z "$APP_KEY" ]]; then
-    msg="ENV undefined: APP_KEY"
-    if [[ "$APP_ENV" = "local" ]]; then
-        APP_KEY=$(php artisan key:generate --show)
-        export APP_KEY
-        echo -e "\e[33m${msg},\e[0m generated $APP_KEY"
-    else
-        echo -e "\e[31m${msg}\e[0m"
-        exit 1
-    fi
-fi
 
 if [[ "$APP_ENV" = "local" ]]; then
     composer install --no-interaction
@@ -42,6 +29,18 @@ else
     echo "Caching configuration..."
     php artisan config:cache
     php artisan route:cache
+fi
+
+if [[ -z "$APP_KEY" ]]; then
+    msg="ENV undefined: APP_KEY"
+    if [[ "$APP_ENV" = "local" ]]; then
+        APP_KEY=$(php artisan key:generate --show)
+        export APP_KEY
+        echo -e "\e[33m${msg},\e[0m generated $APP_KEY"
+    else
+        echo -e "\e[31m${msg}\e[0m"
+        exit 1
+    fi
 fi
 
 if [[ "$DB_CONNECTION" = "sqlite" ]]; then
