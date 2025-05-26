@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Tests and Style Checks
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
         with:
           context: .
           file: ./docker/laravel/Dockerfile.testing
-          tags: hub01_shop_app_testing
+          tags: laravel_app_testing
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
