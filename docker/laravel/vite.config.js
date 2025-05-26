@@ -6,6 +6,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/welcome.css',
                 'resources/js/app.js',
             ],
             refresh: true,
@@ -16,13 +17,15 @@ export default defineConfig({
             '@': '/resources/js',
             '%': '/resources/css',
         },
-    },
-    server: {
+    },    server: {
         hmr: {
-            host: 'localhost', // this controls the url host used
+            host: '0.0.0.0',
+            protocol: 'ws',
+            port: 5173,
         },
-        host: true, // this allows the use of vite in docker
+        host: true,
         strictPort: true,
         port: 5173,
     },
+
 });

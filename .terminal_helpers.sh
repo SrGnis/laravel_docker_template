@@ -1,41 +1,76 @@
 
+export DUID=$UID
+export DGID=$(id -g)
+
 # Container Run
 #
-# Given a service name and a command, run the command in the container, if no command is given it runs bash by default.
+# Executes a command in a specified Docker container.
+# If no command is provided, it opens a bash shell in the container.
+# Usage: cr [-r] [-u uid] <service_name> [command]
+#
+# Parameters:
+#   -r: Optional flag to run as root (default is to run as the current user for the 'app' service)
+#   -u uid: Optional user ID to run as (overrides default behavior)
+#   <service_name>: Name of the Docker service
+#   [command]: Optional command to run in the container
 cr() {
-  # Set service name variable
+  USER_FLAG=""
+  CUSTOM_UID=""
+  RUN_AS_ROOT=false
+  
+  # Parse options first
+  while (( "$#" )); do
+    case "$1" in
+      -r)
+        RUN_AS_ROOT=true
+        USER_FLAG="--user root"
+        shift
+        ;;
+      -u)
+        if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+          CUSTOM_UID=$2
+          USER_FLAG="--user $CUSTOM_UID"
+          shift 2
+        else
+          echo "Error: Argument for $1 is missing" >&2
+          return 1
+        fi
+        ;;
+      -*) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        return 1
+        ;;
+      *) # preserve positional arguments
+        break
+        ;;
+    esac
+  done
+  
+  # Now $1 should be the service name
   SERVICE_NAME=$1
-
-  # Validate service name variable
   if [ -z "$SERVICE_NAME" ]; then
-    echo "Usage: cr <service_name> [command]"
+    echo "Usage: cr [-r] [-u uid] <service_name> [command]"
     return 1
   fi
+  shift
+  
+  # The rest is the command
+  COMMAND=$@
+  
+  # Set default user for app service if not specified
+  if [ -z "$USER_FLAG" ] && [ "$SERVICE_NAME" = "app" ]; then
+    USER_FLAG="--user $DUID"
+  fi
 
-  # Set command variable
-  COMMAND=${@:2}
-
-  # Get container id
   CONTAINER_ID=$(docker compose ps -q $SERVICE_NAME)
 
-  # Check if container id exists
   if [ -n "$CONTAINER_ID" ]; then
-    # Run command in container
     if [ -n "$COMMAND" ]; then
-      if [ "$SERVICE_NAME" = "app" ]; then
-        docker compose exec -it $SERVICE_NAME sudo -u www-data $COMMAND
-      else
-        docker compose exec -it $SERVICE_NAME $COMMAND
-      fi
+      docker compose exec $USER_FLAG -it $SERVICE_NAME $COMMAND
     else
-      if [ "$SERVICE_NAME" = "app" ]; then
-        docker compose exec -it $SERVICE_NAME sudo -u www-data bash
-      else
-        docker compose exec -it $SERVICE_NAME bash
-      fi
+      docker compose exec $USER_FLAG -it $SERVICE_NAME bash
     fi
   else
-    # Show error message if container does not exist
     echo "Container not found for service $SERVICE_NAME"
   fi
 }
@@ -44,6 +79,6 @@ cr() {
 #
 # Runs docker compose with the development compose file and the given commands as arguments, also sets the DUID environment variable to the current user id.
 dcdev() {
-  # Run the command
-  DUID="$(id -u)" docker compose -f docker-compose-dev.yml ${@:1}
+  echo "Running docker compose with DUID=$DUID and DGID=$DGID"
+  DUID=$DUID DGID=$DGID docker compose -f docker-compose-dev.yml ${@:1}
 }

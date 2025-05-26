@@ -19,15 +19,23 @@ services:
     build:
       context: ./
       dockerfile: ./docker/laravel/Dockerfile.dev
+      args:
+        DUID: ${DUID:-1000}
+        DGID: ${DGID:-1000}
+    ports:
+      - ${VITE_PORT:-5173}:5173
     environment:
-      - DUID=${DUID:-33}
+      - DUID=${DUID:-1000}
+      - DGID=${DGID:-1000}
+      - APP_ENV=${APP_ENV}
+      - DB_CONNECTION=${DB_CONNECTION}
+      - APP_KEY=${APP_KEY}
     volumes:
-      # mount everything to no need to rebuild on changes
       - ./src:/var/www/laravel
-      - ./docker/laravel/etc/apache2/sites-available/laravel.conf:/etc/apache2/sites-available/laravel.conf
-      - ./docker/laravel/usr/local/bin/docker-laravel-entrypoint:/usr/local/bin/docker-laravel-entrypoint
-      - ./docker/laravel/usr/etc/php/conf.d/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
-      - ./docker/laravel/var/spool/cron/crontabs/root:/var/spool/cron/crontabs/root
+      - ./src/storage:/var/www/laravel/storage
+      - ./docker/laravel/config/docker-laravel-entrypoint-dev:/usr/local/bin/docker-laravel-entrypoint
+      - ./docker/laravel/config/docker-laravel-dev-start:/usr/local/bin/docker-laravel-dev-start
+      - ./docker/laravel/config/php-overrides.ini:/usr/local/etc/php/conf.d/php-overrides.ini
 
   # ==========================================================================================
   # Mailpit
